@@ -3,14 +3,14 @@ module Shadowcell
 
     BASE_URL = 'https://geotrigger.arcgis.com/device/update'.freeze
 
-    def update token, tags = []
+    def update token, tags = [], user_id
       header = {
         'Authorization' => 'Bearer ' + token,
         'Content-Type' => 'application/json'
       }
       params = {addTags: tags}
-      @hci.post BASE_URL, params, header
-      LOGGER.debug "updated device with:\n#{params}"
+      r = JSON.parse @hc.post(BASE_URL, params, header).body
+      LOGGER.debug "updated device (#{user_id})"
     end
 
   end

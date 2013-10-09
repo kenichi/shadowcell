@@ -14,13 +14,13 @@ module Shadowcell
         #
         if monitored_app? data['client_id'].to_i
 
-          LOGGER.debug "monitored app:\n'#{msg[1]}'"
+          # LOGGER.debug "monitored app:\n'#{msg[1]}'"
 
           # do we have an access token for this device?
           #
           if user_data = @redis.get("user-#{data['user_id']}")
 
-            LOGGER.debug "have data:\n'#{user_data}'"
+            LOGGER.debug "have data (#{data['user_id']})"
 
             user_data = JSON.parse user_data
             expires_in = user_data['ago']['deviceToken']['expires_at'].to_i - Time.now.to_i
@@ -29,7 +29,7 @@ module Shadowcell
             #
             if expires_in < TOKEN_EXPIRY_THRESHOLD
 
-              LOGGER.debug "about to expire: #{expires_in}"
+              LOGGER.debug "about to expire: #{expires_in} (#{data['user_id']})"
 
               # put this update in the list
               #
@@ -37,7 +37,7 @@ module Shadowcell
 
               # start a refresh token job
               #
-              aci = CONFIG['ago']['apps'][data['client_id']]['client_id']
+              aci = CONFIG['ago']['apps'][data['client_id'].to_i]['client_id']
               rt = user_data['ago']['deviceToken']['refresh_token']
 
               @refresher.async.refresh aci, rt, data['user_id'], user_data
@@ -46,8 +46,8 @@ module Shadowcell
             #
             else
 
-              LOGGER.debug "have token, posting..."
-              at = user_data[:ago]['deviceToken']['access_token']
+              LOGGER.debug "have token, posting (#{data['user_id']})"
+              at = user_data['ago']['deviceToken']['access_token']
               @poster.async.post at, data
 
             end
@@ -75,6 +75,8 @@ module Shadowcell
         end
 
       end
+
+      LOGGER.error "the EATER has STOPPED eating!!!"
     end
 
     def monitored_app? client_id = nil

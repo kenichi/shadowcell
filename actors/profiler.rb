@@ -6,8 +6,8 @@ module Shadowcell
 
     def profile user_id
       header = {'Authorization' => 'Shadow ' + CONFIG['geoloqi']['master_secret']}
-      r = JSON.parse @hci.get(PROFILE_URL % user_id, nil, header).body
-      LOGGER.debug "geoloqi profile:\n#{r}"
+      r = JSON.parse @hc.get(PROFILE_URL % user_id, nil, header).body
+      LOGGER.debug "got geoloqi profile (#{user_id})"
       r
     end
 

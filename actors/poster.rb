@@ -20,8 +20,8 @@ module Shadowcell
           }
         ]
       }
-      LOGGER.debug "posting:\n#{params}"
-      JSON.parse @hc.post LU_URL, params.to_json, header
+      LOGGER.debug "posting location update (#{data['user_id']})"
+      JSON.parse @hc.post(LU_URL, params.to_json, header).body
     end
 
   end

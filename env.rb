@@ -32,8 +32,6 @@ module Shadowcell
   def self.run
 
     feeder = Feeder.new
-    feeder.async.feed
-
     eater = Eater.new
 
       eater.liaison = Liaison.new
@@ -45,31 +43,47 @@ module Shadowcell
       eater.liaison.registrar = Registrar.new
       eater.liaison.updater = Updater.new
 
+    feeder.async.feed
     eater.async.eat
 
   end
 
-  class RedisifiedActor
-    include Celluloid
-    def initialize
+  module RedisActor
+    def create_redis
       @redis = Shadowcell.redis_for host: CONFIG['redis']['host'],
                                     port: CONFIG['redis']['port']
+    end
+  end
+
+  module HCActor
+    def create_hc
+      @hc = HTTPClient.new
+    end
+  end
+  
+  class RedisifiedActor
+    include Celluloid
+    include RedisActor
+    def initialize
+      create_redis
     end
   end
 
   class HCifiedActor
     include Celluloid
+    include HCActor
     def initialize
-      @hc = HTTPClient.new
+      create_hc
     end
   end
 
   class UberActor
     include Celluloid
+    include RedisActor
+    include HCActor
     def initialize
-      @redis = Shadowcell.redis_for host: CONFIG['redis']['host'],
-                                    port: CONFIG['redis']['port']
-      @hc = HTTPClient.new
+      create_redis
+      create_hc
     end
   end
 
