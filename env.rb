@@ -35,15 +35,15 @@ module Shadowcell
     eater = Eater.new
 
       eater.liaison = Liaison.new
-      eater.poster = Poster.new
-      eater.refresher = Refresher.new
+      eater.poster = Poster.pool
+      eater.refresher = Refresher.pool
 
       eater.liaison.flusher = Flusher.new
       eater.liaison.flusher.eater = eater
 
-      eater.liaison.profiler = Profiler.new
-      eater.liaison.registrar = Registrar.new
-      eater.liaison.updater = Updater.new
+      eater.liaison.profiler = Profiler.pool
+      eater.liaison.registrar = Registrar.pool
+      eater.liaison.updater = Updater.pool
 
     feeder.async.feed
     eater.async.eat
