@@ -1,9 +1,9 @@
 module Shadowcell
-  class Liaison < RedisifiedActor
+  class Liaison < UberActor
 
-    attr_accessor :registrar, :profiler, :updater
+    attr_accessor :flusher, :profiler, :registrar, :updater
 
-    def liaise data, &block
+    def liaise data
       aci = CONFIG['ago']['apps'][data['client_id']]['client_id']
       reg_future = @registrar.future.register aci
       pro_future = @profiler.future.profile data['user_id']
@@ -13,7 +13,9 @@ module Shadowcell
         geoloqi: pro_future.value
       }
 
-      @redis.set "user-#{data['user_id']}", user_data.to_json
+      key = "user-#{data['user_id']}"
+      LOGGER.debug "setting '#{key}' => #{user_data}"
+      @redis.set key, user_data.to_json
 
       tags = []
       user_data[:geoloqi]['subscriptions'].each do |layer|
@@ -21,7 +23,8 @@ module Shadowcell
       end
 
       at = user_data[:ago]['deviceToken']['access_token']
-      @updater.async.update at, tags, &block
+      @updater.async.update at, tags
+      @flusher.async.flush data['user_id']
     end
 
   end

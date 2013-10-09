@@ -36,11 +36,11 @@ module Shadowcell
 
     eater = Eater.new
 
-      eater.flusher = Flusher.new
       eater.liaison = Liaison.new
       eater.poster = Poster.new
       eater.refresher = Refresher.new
 
+      eater.liaison.flusher = Flusher.new
       eater.liaison.profiler = Profiler.new
       eater.liaison.registrar = Registrar.new
       eater.liaison.updater = Updater.new
@@ -60,6 +60,15 @@ module Shadowcell
   class HCifiedActor
     include Celluloid
     def initialize
+      @hc = HTTPClient.new
+    end
+  end
+
+  class UberActor
+    include Celluloid
+    def initialize
+      @redis = Shadowcell.redis_for host: CONFIG['redis']['host'],
+                                    port: CONFIG['redis']['port']
       @hc = HTTPClient.new
     end
   end

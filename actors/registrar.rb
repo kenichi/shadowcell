@@ -8,6 +8,7 @@ module Shadowcell
                               AGO_PARAMS.merge(client_id: client_id)).body
       r['deviceToken']['expires_at'] =
         Time.at(Time.now.to_i + r['deviceToken']['expires_in']).to_i
+      LOGGER.debug "registered device:\n#{r}"
       r
     end
 

@@ -12,7 +12,7 @@ module Shadowcell
 
         # is this an app we care about?
         #
-        if monitored_app? data['client_id']
+        if monitored_app? data['client_id'].to_i
 
           LOGGER.debug "monitored app:\n'#{msg[1]}'"
 
@@ -40,10 +40,7 @@ module Shadowcell
               aci = CONFIG['ago']['apps'][data['client_id']]['client_id']
               rt = user_data['ago']['deviceToken']['refresh_token']
 
-              @refresher.async.refresh(aci, rt) do |response|
-                user_data[:ago] = response
-                @redis.set "user-#{data['user_id']}", user_data.to_json
-              end
+              @refresher.async.refresh aci, rt, data['user_id'], user_data
 
             # good to go: post the update
             #
@@ -67,9 +64,7 @@ module Shadowcell
 
               # if it's the first one in the list, start a registration
               #
-              @liaison.async.liaise data do
-                @flusher.async.flush data['user_id']
-              end
+              @liaison.async.liaise data
 
             end
 
