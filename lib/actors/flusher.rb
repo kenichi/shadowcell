@@ -3,6 +3,11 @@ module Shadowcell
 
     attr_accessor :eater
 
+    def initialize eater
+      create_redis
+      @eater = eater
+    end
+
     def flush user_id
       key = "user-locations-#{user_id}"
       count = 0

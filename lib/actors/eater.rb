@@ -77,7 +77,7 @@ module Shadowcell
 
       end
       @eating = false
-      LOGGER.error "the EATER has STOPPED eating!!!"
+      LOGGER.debug "the EATER has STOPPED eating!!!"
     end
 
     def monitored_app? client_id = nil

@@ -1,9 +1,11 @@
 ENV['TZ'] = 'UTC'
 Encoding.default_internal = 'UTF-8'
-require 'rubygems'
-require 'bundler/setup'
-Bundler.require
 
+require 'celluloid'
+require 'celluloid/io'
+require 'celluloid/redis'
+require 'redis'
+require 'httpclient'
 require 'yaml'
 require 'json'
 require 'logger'
@@ -20,7 +22,7 @@ module Shadowcell
   CONFIG = YAML.load_file(CONFIG_FILE) or raise "no #{CONFIG_FILE} found"
 
   LOGGER = Logger.new STDOUT
-  LOGGER.level = Logger::DEBUG
+  LOGGER.level = Logger::WARN
 
   def self.redis_for opts = {}
     Redis.new timeout: REDIS_TIMEOUT,
@@ -38,8 +40,8 @@ module Shadowcell
       eater.poster = Poster.pool
       eater.refresher = Refresher.pool
 
-      eater.liaison.flusher = Flusher.new
-      eater.liaison.flusher.eater = eater
+      eater.liaison.flusher = Flusher.pool args: [eater]
+      # eater.liaison.flusher.eater = eater
 
       eater.liaison.profiler = Profiler.pool
       eater.liaison.registrar = Registrar.pool
@@ -62,6 +64,16 @@ module Shadowcell
       @hc = HTTPClient.new
     end
   end
+
+  module Timer
+    def warn_if_time_over threshold, thing, &block
+      t = Time.now
+      ret = yield
+      t = (Time.now - t).to_f
+      LOGGER.warn "#{t}s to #{thing}" if t > threshold
+      ret
+    end
+  end
   
   class RedisifiedActor
     include Celluloid
@@ -74,6 +86,7 @@ module Shadowcell
   class HCifiedActor
     include Celluloid
     include HCActor
+    include Timer
     def initialize
       create_hc
     end
@@ -83,6 +96,7 @@ module Shadowcell
     include Celluloid
     include RedisActor
     include HCActor
+    include Timer
     def initialize
       create_redis
       create_hc

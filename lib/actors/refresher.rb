@@ -10,7 +10,12 @@ module Shadowcell
         grant_type: GRANT_TYPE,
         refresh_token: refresh_token
       }
-      user_data[:ago] = JSON.parse @hc.post(REFRESH_URL, AGO_PARAMS.merge(params)).body
+      r = warn_if_time_over 1.0, "refresh" do
+        JSON.parse @hc.post(REFRESH_URL, AGO_PARAMS.merge(params)).body
+      end
+      user_data['ago']['deviceToken']['access_token'] = r['access_token']
+      user_data['ago']['deviceToken']['expires_at'] = 
+        Time.at( Time.now.to_i + r['expires_in'].to_i ).to_i
       @redis.set "user-#{user_id}", user_data.to_json
     end
 

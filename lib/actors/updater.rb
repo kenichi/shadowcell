@@ -9,7 +9,9 @@ module Shadowcell
         'Content-Type' => 'application/json'
       }
       params = {addTags: tags}
-      r = JSON.parse @hc.post(BASE_URL, params, header).body
+      r = warn_if_time_over 1.0, "update" do
+        JSON.parse @hc.post(BASE_URL, params, header).body
+      end
       LOGGER.debug "updated device (#{user_id})"
     end
 

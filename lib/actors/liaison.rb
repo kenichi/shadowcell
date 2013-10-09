@@ -1,5 +1,5 @@
 module Shadowcell
-  class Liaison < UberActor
+  class Liaison < RedisifiedActor
 
     attr_accessor :flusher, :profiler, :registrar, :updater
 
@@ -17,13 +17,10 @@ module Shadowcell
       LOGGER.debug "setting '#{key}'"
       @redis.set key, user_data.to_json
 
-      tags = []
-      user_data['geoloqi']['subscriptions'].each do |layer|
-        tags << "layer_id:#{layer}"
-      end
-
+      tags = user_data['geoloqi']['subscriptions'].map {|l| "layer_id:#{l}"}
       at = user_data['ago']['deviceToken']['access_token']
       @updater.async.update at, tags, data['user_id']
+
       @flusher.async.flush data['user_id']
     end
 
