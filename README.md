@@ -4,7 +4,7 @@ shadowcell
 for now...
 
 ```
-$ bundle exec irb ./env
+$ bundle exec irb -r./env
 >> Shadowcell.run
 
 ...
