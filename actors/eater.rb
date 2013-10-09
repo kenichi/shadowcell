@@ -6,6 +6,7 @@ module Shadowcell
     TOKEN_EXPIRY_THRESHOLD = 60
 
     def eat
+      @eating = true
       while msg = @redis.brpop(PUB_CHANNEL, 1) do
 
         data = JSON.parse msg[1]
@@ -75,7 +76,7 @@ module Shadowcell
         end
 
       end
-
+      @eating = false
       LOGGER.error "the EATER has STOPPED eating!!!"
     end
 
@@ -88,6 +89,10 @@ module Shadowcell
       count = @redis.lpush key, msg[1]
       LOGGER.debug "#{count} jobs in #{key}" if count % 10 == 0
       count
+    end
+
+    def eating?
+      @eating
     end
 
   end

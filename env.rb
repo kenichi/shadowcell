@@ -39,6 +39,8 @@ module Shadowcell
       eater.refresher = Refresher.new
 
       eater.liaison.flusher = Flusher.new
+      eater.liaison.flusher.eater = eater
+
       eater.liaison.profiler = Profiler.new
       eater.liaison.registrar = Registrar.new
       eater.liaison.updater = Updater.new
