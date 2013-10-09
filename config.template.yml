@@ -1,0 +1,21 @@
+redis:
+  host: localhost
+  port: 6379
+ago:
+  default_app:
+  apps:
+    xxx:
+      client_id:
+      client_secret:
+geoloqi:
+  default_app:
+  client_id:
+  client_secret:
+  master_secret:
+  redis:
+    host:
+    port:
+  apps:
+    xxx:
+      client_id:
+      client_secret:
