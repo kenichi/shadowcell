@@ -21,7 +21,7 @@ module Shadowcell
       at = user_data['ago']['deviceToken']['access_token']
       @updater.async.update at, tags, data['user_id']
 
-      @flusher.async.flush data['user_id']
+      # @flusher.async.flush data['user_id']
     end
 
   end

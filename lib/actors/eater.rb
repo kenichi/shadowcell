@@ -1,21 +1,22 @@
 module Shadowcell
   class Eater < RedisifiedActor
+    extend Stoppable
 
-    attr_accessor :flusher, :liaison, :poster, :refresher
+    attr_accessor :liaison, :poster, :refresher
 
     TOKEN_EXPIRY_THRESHOLD = 60
+    BRPOP_TIMEOUT = 1.0
+
+    def initialize
+      super
+      @redis.set POST_COUNT_KEY, 0
+    end
 
     def eat
-      @eating = true
-      while msg = @redis.brpop(PUB_CHANNEL, 1) do
+      until Eater.stop? do
+        if msg = @redis.brpop(PUB_CHANNEL, BRPOP_TIMEOUT)
 
-        data = JSON.parse msg[1]
-
-        # is this an app we care about?
-        #
-        if monitored_app? data['client_id'].to_i
-
-          # LOGGER.debug "monitored app:\n'#{msg[1]}'"
+          data = JSON.parse msg[1]
 
           # do we have an access token for this device?
           #
@@ -71,17 +72,9 @@ module Shadowcell
 
           end
 
-        # not an app we care about...
-        #
         end
-
       end
-      @eating = false
-      LOGGER.debug "the EATER has STOPPED eating!!!"
-    end
-
-    def monitored_app? client_id = nil
-      CONFIG['geoloqi']['apps'].keys.include? client_id
+      LOGGER.error "the EATER has STOPPED eating!!!"
     end
 
     def queue_msg_for_later data, msg
@@ -89,10 +82,6 @@ module Shadowcell
       count = @redis.lpush key, msg[1]
       LOGGER.debug "#{count} jobs in #{key}" if count % 10 == 0
       count
-    end
-
-    def eating?
-      @eating
     end
 
   end

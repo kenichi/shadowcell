@@ -1,7 +1,14 @@
 module Shadowcell
   class Updater < HCifiedActor
 
+    attr_accessor :flusher
+
     BASE_URL = 'https://geotrigger.arcgis.com/device/update'.freeze
+
+    def initialize flusher = nil
+      super()
+      @flusher = flusher
+    end
 
     def update token, tags = [], user_id
       header = {
@@ -13,6 +20,8 @@ module Shadowcell
         JSON.parse @hc.post(BASE_URL, params, header).body
       end
       LOGGER.debug "updated device (#{user_id})"
+
+      @flusher.async.flush user_id
     end
 
   end

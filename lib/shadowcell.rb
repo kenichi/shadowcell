@@ -18,11 +18,13 @@ module Shadowcell
   AGO_BASE_URL = 'https://www.arcgis.com/sharing/'.freeze
   AGO_PARAMS = {f: 'json'}.freeze
 
+  POST_COUNT_KEY = 'locations-updated'.freeze
+
   CONFIG_FILE = 'config.yml'
   CONFIG = YAML.load_file(CONFIG_FILE) or raise "no #{CONFIG_FILE} found"
 
   LOGGER = Logger.new STDOUT
-  LOGGER.level = Logger::WARN
+  LOGGER.level = Logger::INFO
 
   def self.redis_for opts = {}
     Redis.new timeout: REDIS_TIMEOUT,
@@ -31,25 +33,42 @@ module Shadowcell
               driver: :celluloid
   end
 
-  def self.run
+  def self.run!
 
-    feeder = Feeder.new
-    eater = Eater.new
+    @feeder = Feeder.new
+    @eater = Eater.new
 
-      eater.liaison = Liaison.new
-      eater.poster = Poster.pool
-      eater.refresher = Refresher.pool
+      @eater.poster = Poster.pool
+      @eater.refresher = Refresher.pool
 
-      eater.liaison.flusher = Flusher.pool args: [eater]
-      # eater.liaison.flusher.eater = eater
+      @eater.liaison = Liaison.new
 
-      eater.liaison.profiler = Profiler.pool
-      eater.liaison.registrar = Registrar.pool
-      eater.liaison.updater = Updater.pool
+      @eater.liaison.profiler = Profiler.pool
+      @eater.liaison.registrar = Registrar.pool
 
-    feeder.async.feed
-    eater.async.eat
+      @flusher = Flusher.new
+      @eater.liaison.updater = Updater.pool args: [@flusher]
 
+    @feeder.async.feed
+    @eater.async.eat
+
+    @reporter = Reporter.new.async.report
+
+  end
+
+  def self.stop!
+    Feeder.stop!
+    Eater.stop!
+    Reporter.stop!
+  end
+
+  module Stoppable
+    def stop!
+      @stop = true
+    end
+    def stop?
+      @stop
+    end
   end
 
   module RedisActor
@@ -114,4 +133,5 @@ require 'actors/poster'
 require 'actors/profiler'
 require 'actors/refresher'
 require 'actors/registrar'
+require 'actors/reporter'
 require 'actors/updater'

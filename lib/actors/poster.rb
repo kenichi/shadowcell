@@ -1,5 +1,5 @@
 module Shadowcell
-  class Poster < HCifiedActor
+  class Poster < UberActor
 
     LU_URL = 'https://geotrigger.arcgis.com/location/update'.freeze
 
@@ -25,6 +25,7 @@ module Shadowcell
       warn_if_time_over 1.0, "posting" do
         JSON.parse @hc.post(LU_URL, params.to_json, header).body
       end
+      @redis.incr POST_COUNT_KEY
     end
 
   end

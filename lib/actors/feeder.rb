@@ -1,6 +1,7 @@
 module Shadowcell
   class Feeder
     include Celluloid
+    extend Stoppable
 
     def initialize opts = {}
       @sub = Shadowcell.redis_for host: CONFIG['geoloqi']['redis']['host'],
@@ -12,20 +13,17 @@ module Shadowcell
     def feed
       @sub.subscribe SUB_CHANNEL do |on|
         on.message do |channel, msg|
-          count = @pub.lpush PUB_CHANNEL, msg
-          LOGGER.debug "#{count} msg(s) in channel '#{PUB_CHANNEL}'" if count % 100 == 0
+          if monitored_app? msg
+            count = @pub.lpush PUB_CHANNEL, msg
+            LOGGER.warn "#{count} msg(s) in channel '#{PUB_CHANNEL}'" if count % 100 == 0
+          end
           return if Shadowcell::Feeder.stop?
         end
       end
     end
 
-    # blatantly stolen from sidekiq...
-    #
-    def self.stop!
-      @stop = true
-    end
-    def self.stop?
-      @stop
+    def monitored_app? msg
+      CONFIG['geoloqi']['apps'].keys.include? JSON.parse(msg)['client_id'].to_i
     end
 
   end
