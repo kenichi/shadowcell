@@ -2,6 +2,10 @@ module Shadowcell
   class Registrar < HCifiedActor
 
     REGISTER_URL = (AGO_BASE_URL + 'oauth2/registerDevice').freeze
+    AVG_KEYS = [
+      'registrar'.freeze,
+      'registrar_count'.freeze
+    ]
 
     def register client_id, user_id
       r = warn_if_time_over 1.0, "register" do

@@ -4,6 +4,10 @@ module Shadowcell
     attr_accessor :flusher
 
     BASE_URL = 'https://geotrigger.arcgis.com/device/update'.freeze
+    AVG_KEYS = [
+      'updater'.freeze,
+      'updater_count'.freeze
+    ]
 
     def initialize flusher = nil
       super()

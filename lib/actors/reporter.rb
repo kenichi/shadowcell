@@ -18,6 +18,10 @@ module Shadowcell
       LOGGER.info "#{total_queued} location updates in #{queues.length} queues"
       LOGGER.info "max: #{max_queued} min: #{min_queued}"
 
+      [Registrar, Profiler, Updater, Poster].each do |er|
+        LOGGER.info "#{er} - #{@redis.get er::AVG_KEYS[1]} averaging #{@redis.get er::AVG_KEYS[0]}s"
+      end
+
       after(5){ Celluloid::Actor.current.async.report } unless Reporter.stop?
 
     end

@@ -3,6 +3,10 @@ module Shadowcell
 
     GL_BASE_URL = 'https://api.geoloqi.com/1/'.freeze
     PROFILE_URL = (GL_BASE_URL + 'user/info/%s').freeze
+    AVG_KEYS = [
+      'profiler'.freeze,
+      'profiler_count'.freeze
+    ]
 
     def profile user_id
       header = {'Authorization' => 'Shadow ' + CONFIG['geoloqi']['master_secret']}

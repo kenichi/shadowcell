@@ -3,6 +3,10 @@ module Shadowcell
 
     REFRESH_URL = (AGO_BASE_URL + 'oauth2/token').freeze
     GRANT_TYPE = 'refresh_token'.freeze
+    AVG_KEYS = [
+      'refresher'.freeze,
+      'refresher_count'.freeze
+    ]
 
     def refresh client_id, refresh_token, user_id, user_data
       params = {

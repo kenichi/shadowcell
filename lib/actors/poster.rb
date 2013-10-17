@@ -2,6 +2,10 @@ module Shadowcell
   class Poster < UberActor
 
     LU_URL = 'https://geotrigger.arcgis.com/location/update'.freeze
+    AVG_KEYS = [
+      'poster'.freeze,
+      'poster_count'.freeze
+    ]
 
     def post access_token, data
       header = {

@@ -18,10 +18,10 @@ module Shadowcell
   AGO_BASE_URL = 'https://www.arcgis.com/sharing/'.freeze
   AGO_PARAMS = {f: 'json'}.freeze
 
-  POST_COUNT_KEY = 'locations-updated'.freeze
-
   CONFIG_FILE = 'config.yml'
   CONFIG = YAML.load_file(CONFIG_FILE) or raise "no #{CONFIG_FILE} found"
+
+  POST_COUNT_KEY = 'locations-updated'.freeze
 
   LOGGER = Logger.new STDOUT
   LOGGER.level = Logger::INFO
@@ -62,6 +62,13 @@ module Shadowcell
     Reporter.stop!
   end
 
+  def self.average keys, time
+    @redis ||= redis_for
+    a = @redis.get(keys[0]).to_f || 0.0
+    c = @redis.incr(keys[1]).to_i
+    @redis.set keys[0], ((a * (c - 1)) + time) / c
+  end
+
   module Stoppable
     def stop!
       @stop = true
@@ -85,15 +92,23 @@ module Shadowcell
   end
 
   module Timer
+
     def warn_if_time_over threshold, thing, &block
-      t = Time.now
-      ret = yield
-      t = (Time.now - t).to_f
+      ret, t = time &block
       LOGGER.warn "#{t}s to #{thing}" if t > threshold
       ret
     end
+
+    def time &block
+      t = Time.now
+      ret = yield
+      t = (Time.now - t).to_f
+      Shadowcell.average self.class::AVG_KEYS, t
+      return ret, t
+    end
+
   end
-  
+
   class RedisifiedActor
     include Celluloid
     include RedisActor
